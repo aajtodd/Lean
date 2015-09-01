@@ -328,7 +328,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
             var exchangeHours = SecurityExchangeHoursProvider.FromDataFolder().GetExchangeHours(market, null, SecurityType.Equity);
             var symbolName = new Symbol(market + "-coarse");
             var subscriptionDataConfig = new SubscriptionDataConfig(typeof (CoarseFundamental), SecurityType.Equity, symbolName, Resolution.Daily, market, exchangeHours.TimeZone,
-                true, false, true);
+                true, false, true, false);
             var security = new Security(exchangeHours, subscriptionDataConfig, 1);
             
             var cf = new CoarseFundamental();
