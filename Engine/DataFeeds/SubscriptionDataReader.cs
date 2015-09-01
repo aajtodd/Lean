@@ -25,7 +25,6 @@ using QuantConnect.Data.Market;
 using QuantConnect.Lean.Engine.DataFeeds.Auxiliary;
 using QuantConnect.Lean.Engine.Results;
 using QuantConnect.Logging;
-using QuantConnect.Securities;
 using QuantConnect.Util;
 
 namespace QuantConnect.Lean.Engine.DataFeeds
@@ -111,14 +110,12 @@ namespace QuantConnect.Lean.Engine.DataFeeds
         /// Subscription data reader takes a subscription request, loads the type, accepts the data source and enumerate on the results.
         /// </summary>
         /// <param name="config">Subscription configuration object</param>
-        /// <param name="security">Security asset</param>
         /// <param name="periodStart">Start date for the data request/backtest</param>
         /// <param name="periodFinish">Finish date for the data request/backtest</param>
-        /// <param name="resultHandler"></param>
+        /// <param name="resultHandler">Result handler used to push error messages and perform sampling on skipped days</param>
         /// <param name="tradeableDates">Defines the dates for which we'll request data, in order</param>
         /// <param name="isLiveMode">True if we're in live mode, false otherwise</param>
         public SubscriptionDataReader(SubscriptionDataConfig config,
-            Security security,
             DateTime periodStart,
             DateTime periodFinish,
             IResultHandler resultHandler,
@@ -172,7 +169,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
             try
             {
                 // do we have map/factor tables? -- only applies to equities
-                if (!_config.IsCustomData && security.Type == SecurityType.Equity)
+                if (!_config.IsCustomData && _config.SecurityType == SecurityType.Equity)
                 {
                     // resolve the correct map file as of the date
                     _mapFile = MapFile.Read(config.Symbol.SID, config.Market);

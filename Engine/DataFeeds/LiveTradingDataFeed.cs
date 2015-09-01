@@ -469,7 +469,6 @@ namespace QuantConnect.Lean.Engine.DataFeeds
                 // TODO: Update this when warmup comes in, we back up so we can get data that should have emitted at midnight today
                 var subscriptionDataReader = new SubscriptionDataReader(
                     security.SubscriptionDataConfig,
-                    security,
                     periodStart, Time.EndOfTime,
                     resultHandler,
                     Time.EachTradeableDay(algorithm.Securities.Values, periodStart, periodEnd),
