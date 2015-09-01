@@ -1021,7 +1021,7 @@ namespace QuantConnect.Algorithm
             {
                 var sec = Securities[x];
                 var secConfig = sec.SubscriptionDataConfig; 
-                var config = new SubscriptionDataConfig(secConfig.Type, secConfig.SecurityType, x, resolution, secConfig.Market, secConfig.TimeZone, fillForward, extendedMarket, false, secConfig.IsDynamicallyLoadedData);
+                var config = new SubscriptionDataConfig(secConfig.Type, secConfig.SecurityType, x, resolution, secConfig.Market, secConfig.TimeZone, fillForward, extendedMarket, false, secConfig.IsCustomData);
                 return new Security(sec.Exchange.Hours, config, sec.Leverage);
             });
             start = start.ConvertToUtc(TimeZone);

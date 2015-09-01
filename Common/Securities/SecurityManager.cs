@@ -367,7 +367,7 @@ namespace QuantConnect.Securities
             decimal leverage,
             bool extendedMarketHours,
             bool isInternalFeed,
-            bool isDynamicallyLoaded)
+            bool isCustomData)
         {
             //If it hasn't been set, use some defaults based on the portfolio type:
             if (leverage <= 0)
@@ -395,7 +395,7 @@ namespace QuantConnect.Securities
             var exchangeHours = securityExchangeHoursProvider.GetExchangeHours(market, symbol, securityType);
             var tradeBarType = typeof(TradeBar);
             var type = resolution == Resolution.Tick ? typeof(Tick) : tradeBarType;
-            var config = subscriptionManager.Add(type, securityType, symbol, resolution, market, exchangeHours.TimeZone, isDynamicallyLoaded, fillDataForward, extendedMarketHours, isInternalFeed);
+            var config = subscriptionManager.Add(type, securityType, symbol, resolution, market, exchangeHours.TimeZone, isCustomData, fillDataForward, extendedMarketHours, isInternalFeed);
 
             Security security;
             switch (config.SecurityType)

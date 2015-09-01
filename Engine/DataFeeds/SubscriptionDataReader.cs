@@ -172,7 +172,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
             try
             {
                 // do we have map/factor tables? -- only applies to equities
-                if (!_config.IsDynamicallyLoadedData && security.Type == SecurityType.Equity)
+                if (!_config.IsCustomData && security.Type == SecurityType.Equity)
                 {
                     // resolve the correct map file as of the date
                     _mapFile = MapFile.Read(config.Symbol.SID, config.Market);
@@ -412,7 +412,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
             factory.CreateStreamReaderError += (sender, args) =>
             {
                 Log.Error(string.Format("Failed to get StreamReader for data source({0}), symbol({1}). Skipping date({2}). Reader is null.", args.Source.Source, _mappedSymbol, args.Date.ToShortDateString()));
-                if (_config.IsDynamicallyLoadedData)
+                if (_config.IsCustomData)
                 {
                     _resultHandler.ErrorMessage(string.Format("We could not fetch the requested data. This may not be valid data, or a failed download of custom data. Skipping source ({0}).", args.Source.Source));
                 }
