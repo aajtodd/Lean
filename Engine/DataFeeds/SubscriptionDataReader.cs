@@ -49,9 +49,6 @@ namespace QuantConnect.Lean.Engine.DataFeeds
         /// true if we can find a scale factor file for the security of the form: ..\Lean\Data\equity\market\factor_files\{SYMBOL}.csv
         private readonly bool _hasScaleFactors;
 
-        // Subscription is for a QC type:
-        private readonly bool _isDynamicallyLoadedData;
-
         // Symbol Mapping:
         private string _mappedSymbol = "";
 
@@ -139,7 +136,6 @@ namespace QuantConnect.Lean.Engine.DataFeeds
             _periodFinish = periodFinish;
 
             //Save access to securities
-            _isDynamicallyLoadedData = security.IsDynamicallyLoadedData;
             _isLiveMode = isLiveMode;
 
             //Save the type of data we'll be getting from the source.
@@ -176,7 +172,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
             try
             {
                 // do we have map/factor tables? -- only applies to equities
-                if (!security.IsDynamicallyLoadedData && security.Type == SecurityType.Equity)
+                if (!_config.IsDynamicallyLoadedData && security.Type == SecurityType.Equity)
                 {
                     // resolve the correct map file as of the date
                     _mapFile = MapFile.Read(config.Symbol.SID, config.Market);
@@ -416,7 +412,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
             factory.CreateStreamReaderError += (sender, args) =>
             {
                 Log.Error(string.Format("Failed to get StreamReader for data source({0}), symbol({1}). Skipping date({2}). Reader is null.", args.Source.Source, _mappedSymbol, args.Date.ToShortDateString()));
-                if (_isDynamicallyLoadedData)
+                if (_config.IsDynamicallyLoadedData)
                 {
                     _resultHandler.ErrorMessage(string.Format("We could not fetch the requested data. This may not be valid data, or a failed download of custom data. Skipping source ({0}).", args.Source.Source));
                 }

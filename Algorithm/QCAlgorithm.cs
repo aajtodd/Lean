@@ -1022,7 +1022,7 @@ namespace QuantConnect.Algorithm
                 var sec = Securities[x];
                 var secConfig = sec.SubscriptionDataConfig; 
                 var config = new SubscriptionDataConfig(secConfig.Type, secConfig.SecurityType, x, resolution, secConfig.Market, secConfig.TimeZone, fillForward, extendedMarket, false, secConfig.IsDynamicallyLoadedData);
-                return new Security(sec.Exchange.Hours, config, sec.Leverage, sec.IsDynamicallyLoadedData);
+                return new Security(sec.Exchange.Hours, config, sec.Leverage);
             });
             start = start.ConvertToUtc(TimeZone);
             end = end.ConvertToUtc(TimeZone);
@@ -1165,7 +1165,7 @@ namespace QuantConnect.Algorithm
             var exchangeHours = _exchangeHoursProvider.GetExchangeHours(config);
 
             //Add this new generic data as a tradeable security: 
-            var security = new Security(exchangeHours, config, leverage, true);
+            var security = new Security(exchangeHours, config, leverage);
             Securities.Add(symbol, security);
         }
 
