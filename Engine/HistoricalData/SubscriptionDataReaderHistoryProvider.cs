@@ -15,6 +15,7 @@
 */
 
 using System;
+using System.Collections;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -58,6 +59,8 @@ namespace QuantConnect.Lean.Engine.HistoricalData
 
         private Subscription CreateSubscription(HistoryRequest request, DateTime start, DateTime end)
         {
+            var localStart = start;
+
             // data reader expects these values in local times
             start = start.ConvertFromUtc(request.ExchangeHours.TimeZone);
             end = end.ConvertFromUtc(request.ExchangeHours.TimeZone);
@@ -89,6 +92,11 @@ namespace QuantConnect.Lean.Engine.HistoricalData
             {
                 reader = new FillForwardEnumerator(reader, security.Exchange, request.FillForwardResolution.Value.ToTimeSpan(), security.IsExtendedMarketHours, end, config.Increment);
             }
+
+            // this is needed to get the correct result from bar count based requests, don't permit data
+            // throw whose end time is equal to local start,which the subscription data reader does allow
+            // only apply this filter to non-tick subscriptions
+            reader = new FilterEnumerator<BaseData>(reader, data => config.Resolution == Resolution.Tick || data.EndTime > localStart);
 
             return new Subscription(security, reader, start, end, false, false);
         }
@@ -192,6 +200,59 @@ namespace QuantConnect.Lean.Engine.HistoricalData
             public void Exit() { }
             public void PurgeQueue() { }
             public void ProcessSynchronousEvents(bool forceProcess = false) { }
+
+            #endregion
+        }
+
+        private class FilterEnumerator<T> : IEnumerator<T>
+        {
+            private readonly IEnumerator<T> _enumerator;
+            private readonly Func<T, bool> _filter;
+
+            public FilterEnumerator(IEnumerator<T> enumerator, Func<T, bool> filter)
+            {
+                _enumerator = enumerator;
+                _filter = filter;
+            }
+
+            #region Implementation of IDisposable
+
+            public void Dispose()
+            {
+                _enumerator.Dispose();
+            }
+
+            #endregion
+
+            #region Implementation of IEnumerator
+
+            public bool MoveNext()
+            {
+                // run the enumerator until it passes the specified filter
+                while (_enumerator.MoveNext())
+                {
+                    if (_filter(_enumerator.Current))
+                    {
+                        return true;
+                    }
+                }
+                return false;
+            }
+
+            public void Reset()
+            {
+                _enumerator.Reset();
+            }
+
+            public T Current
+            {
+                get { return _enumerator.Current; }
+            }
+
+            object IEnumerator.Current
+            {
+                get { return _enumerator.Current; }
+            }
 
             #endregion
         }
