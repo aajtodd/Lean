@@ -79,6 +79,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
 
         // true if we're in live mode, false otherwise
         private readonly bool _isLiveMode;
+        private readonly bool _includeAuxilliaryData;
 
         private BaseData _previous;
         private readonly Queue<BaseData> _auxiliaryData;
@@ -115,12 +116,14 @@ namespace QuantConnect.Lean.Engine.DataFeeds
         /// <param name="resultHandler">Result handler used to push error messages and perform sampling on skipped days</param>
         /// <param name="tradeableDates">Defines the dates for which we'll request data, in order</param>
         /// <param name="isLiveMode">True if we're in live mode, false otherwise</param>
+        /// <param name="includeAuxilliaryData">True if we want to emit aux data, false to only emit price data</param>
         public SubscriptionDataReader(SubscriptionDataConfig config,
             DateTime periodStart,
             DateTime periodFinish,
             IResultHandler resultHandler,
             IEnumerable<DateTime> tradeableDates,
-            bool isLiveMode
+            bool isLiveMode,
+            bool includeAuxilliaryData = true
             )
         {
             //Save configuration of data-subscription:
@@ -134,6 +137,7 @@ namespace QuantConnect.Lean.Engine.DataFeeds
 
             //Save access to securities
             _isLiveMode = isLiveMode;
+            _includeAuxilliaryData = includeAuxilliaryData;
 
             //Save the type of data we'll be getting from the source.
 
@@ -251,6 +255,8 @@ namespace QuantConnect.Lean.Engine.DataFeeds
                         continue;
                     }
 
+                    // request bars to have end after period start, ticks can be on the period start
+                    //if (instance.EndTime <= _periodStart || (instance.Time == instance.EndTime && instance.EndTime == _periodStart))
                     if (instance.EndTime < _periodStart)
                     {
                         // keep reading until we get a value on or after the start
@@ -302,6 +308,11 @@ namespace QuantConnect.Lean.Engine.DataFeeds
 
         private bool HasAuxDataBefore(BaseData instance)
         {
+            // this function is always used to check for aux data, as such, we'll implement the
+            // feature of whether to include or not here so if other aux data is added we won't
+            // need to remember this feature. this is mostly here until aux data gets moved into
+            // its own subscription class
+            if (!_includeAuxilliaryData) _auxiliaryData.Clear();
             if (_auxiliaryData.Count == 0) return false;
             if (instance == null) return true;
             return _auxiliaryData.Peek().EndTime < instance.EndTime;
