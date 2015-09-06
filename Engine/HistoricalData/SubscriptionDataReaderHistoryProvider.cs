@@ -31,6 +31,7 @@ using QuantConnect.Lean.Engine.TransactionHandlers;
 using QuantConnect.Orders;
 using QuantConnect.Packets;
 using QuantConnect.Securities;
+using HistoryRequest = QuantConnect.Data.HistoryRequest;
 
 namespace QuantConnect.Lean.Engine.HistoricalData
 {
@@ -41,8 +42,21 @@ namespace QuantConnect.Lean.Engine.HistoricalData
     public class SubscriptionDataReaderHistoryProvider : IHistoryProvider
     {
         private int _dataPointCount;
-        public int DataPointCount { get { return _dataPointCount; } }
 
+        /// <summary>
+        /// Gets the total number of data points emitted by this history provider
+        /// </summary>
+        public int DataPointCount
+        {
+            get { return _dataPointCount; }
+        }
+
+        /// <summary>
+        /// Gets the history for the requested securities
+        /// </summary>
+        /// <param name="requests">The historical data requests</param>
+        /// <param name="sliceTimeZone">The time zone used when time stamping the slice instances</param>
+        /// <returns>An enumerable of the slices of data covering the span specified in each request</returns>
         public IEnumerable<Slice> GetHistory(IEnumerable<HistoryRequest> requests, DateTimeZone sliceTimeZone)
         {
             // create subscription objects from the configs
@@ -57,10 +71,11 @@ namespace QuantConnect.Lean.Engine.HistoricalData
             return CreateSliceEnumerableFromSubscriptions(subscriptions, sliceTimeZone);
         }
 
+        /// <summary>
+        /// Creates a subscription to process the request
+        /// </summary>
         private Subscription CreateSubscription(HistoryRequest request, DateTime start, DateTime end)
         {
-            var localStart = start;
-
             // data reader expects these values in local times
             start = start.ConvertFromUtc(request.ExchangeHours.TimeZone);
             end = end.ConvertFromUtc(request.ExchangeHours.TimeZone);
@@ -84,7 +99,8 @@ namespace QuantConnect.Lean.Engine.HistoricalData
                 end, 
                 ResultHandlerStub.Instance,
                 Time.EachTradeableDay(request.ExchangeHours, start, end), 
-                false
+                false,
+                includeAuxilliaryData: false
                 );
 
             // optionally apply fill forward behavior
@@ -96,11 +112,14 @@ namespace QuantConnect.Lean.Engine.HistoricalData
             // this is needed to get the correct result from bar count based requests, don't permit data
             // throw whose end time is equal to local start,which the subscription data reader does allow
             // only apply this filter to non-tick subscriptions
-            reader = new FilterEnumerator<BaseData>(reader, data => config.Resolution == Resolution.Tick || data.EndTime > localStart);
+            reader = new FilterEnumerator<BaseData>(reader, data => config.Resolution == Resolution.Tick || data.EndTime > start);
 
             return new Subscription(security, reader, start, end, false, false);
         }
 
+        /// <summary>
+        /// Enumerates the subscriptions into slices
+        /// </summary>
         private IEnumerable<Slice> CreateSliceEnumerableFromSubscriptions(List<Subscription> subscriptions, DateTimeZone sliceTimeZone)
         {
             // required by TimeSlice.Create, but we don't need it's behavior

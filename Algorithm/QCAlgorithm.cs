@@ -859,8 +859,12 @@ namespace QuantConnect.Algorithm
             //3. Check not locked already:
             if (!_locked) 
             {
-                _startDate = start;
-                SetDateTime(_startDate);
+                // this is only or backtesting
+                if (!LiveMode)
+                {
+                    _startDate = start;
+                    SetDateTime(_startDate);
+                }
             } 
             else
             {
@@ -1191,9 +1195,10 @@ namespace QuantConnect.Algorithm
             return History(symbols.Select(x =>
             {
                 var security = Securities[x];
+                resolution = resolution ?? security.Resolution;
                 var request = new HistoryRequest(security, start.ConvertToUtc(TimeZone), end.ConvertToUtc(TimeZone))
                 {
-                    Resolution = resolution ?? security.Resolution,
+                    Resolution = resolution.Value,
                     FillForwardResolution = security.IsFillDataForward ? resolution : null
                 };
                 // apply overrides
