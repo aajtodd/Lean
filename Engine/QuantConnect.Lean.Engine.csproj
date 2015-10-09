@@ -183,6 +183,11 @@
     <Compile Include="DataFeeds\Auxiliary\MapFileRow.cs" />
     <Compile Include="DataFeeds\BaseDataSubscriptionFactory.cs" />
     <Compile Include="DataFeeds\CreateStreamReaderErrorEventArgs.cs" />
+    <Compile Include="DataFeeds\DataQueueExchange.cs" />
+    <Compile Include="DataFeeds\LiveFillForwardEnumerator.cs" />
+    <Compile Include="DataFeeds\NewLiveTradingDataFeed.cs" />
+    <Compile Include="DataFeeds\EnqueableEnumerator.cs" />
+    <Compile Include="DataFeeds\TickAggregatingEnumerator.cs" />
     <Compile Include="DataFeeds\UniverseSelectionEventArgs.cs" />
     <Compile Include="DataFeeds\Subscription.cs" />
     <Compile Include="DataFeeds\FillForwardEnumerator.cs" />
